@@ -51,7 +51,13 @@ lista_opcoes: #faz chamada para listar todos os elementos que podem ser chamados
 	la a0, quebra_linha
 	li a7, 4
 	ecall
+	li sp, 5
+	add t3, t3, sp
+	ecall
+	li a7, 5 #le valor digitado no teclado e armazena em a0
+	ecall
 	j end
+	
 end:
 	nop
 	ebreak
