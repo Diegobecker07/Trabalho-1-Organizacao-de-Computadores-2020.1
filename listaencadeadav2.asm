@@ -20,6 +20,7 @@ main:
 	addi sp, sp, -8
 	add s0, zero, sp #carrega endereço inicial do vetor alocado
 	add s1, zero, sp #carrega endereço inicial do vetor alocado p/ futuras insercoes
+	add s2, zero, sp #carrega endereço inicial do vetor alocado p/ futuras ordenacoes
 	add t1, zero, zero #contador do numero de insercoes feitas
 	addi t2, zero, 4 #add 4 p/ deslocamento futuro
 	j lista_opcoes
@@ -97,8 +98,8 @@ insere_elemento:
 	sw zero, 4(sp)
 	sw sp, (s1) #armazena o endereço do segundo elemento no nó do anterior
 	add s1, sp, t2	#carrega o endereco que vai o prox endereco do valor da lista
-	addi t1, zero, 1
-	j lista_opcoes
+	addi t1, t1, 1
+	j ordena_elementos
 	
 insere_primeiro:
 	sw a0, (sp)
@@ -108,7 +109,9 @@ insere_primeiro:
 	j lista_opcoes
 	
 ordena_elementos:
-	
+	lw a1, (s2)
+	lw a2, 4(s2)
+	lw a2, (a2)
 	j lista_opcoes
 	
 remover_por_indice:
