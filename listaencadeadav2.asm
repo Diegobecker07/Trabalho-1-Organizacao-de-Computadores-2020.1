@@ -14,6 +14,7 @@ space:		.string " "
 msg_valor_erro: .string "Valor digitado invalido insiva novamente um valor valido"
 msg_qual_valor: .string "Digite o valor a ser inserido na lista"
 msg_erro_inser: .string "Nao foi possivel inserir o valor na lista"
+msg_erro_listagem: .string "Lista está vazia!"
 
 	.text
 main:
@@ -99,8 +100,10 @@ insere_elemento:
 	sw sp, (s1) #armazena o endereço do segundo elemento no nó do anterior
 	add s1, sp, t2	#carrega o endereco que vai o prox endereco do valor da lista
 	addi t1, t1, 1
-	j ordena_elementos
-	
+	j lista_opcoes
+	#j ordena_elementos
+
+#função que faz a inserção dos dados na lista
 insere_primeiro:
 	sw a0, (sp)
 	sw zero, 4(sp)
@@ -108,20 +111,76 @@ insere_primeiro:
 	add s1, sp, t2 #carrega o endereco que vai o prox endereco do valor da lista
 	j lista_opcoes
 	
+#funcão que ordena os elementos adicionados
 ordena_elementos:
-	lw a1, (s2)
-	lw a2, 4(s2)
-	lw a2, (a2)
-	j lista_opcoes
+	#add t5, s2, t2
+	#lw t5, (t5)
+	#beq t5, zero, lista_opcoes 
+	lw s5, (s2) #carrega o valor de s2(que no inicio é o primeiro end do vetor) 
+	lw s7, 4(s2) #carrega endereço do prox elemento em s7
+	beq s7, zero, init
+	lw s6, (s7)
+	add s8, zero, ra #guarda valor pra retorno
+	blt s6, s5, swap_vetor
 	
+	
+	
+swap_vetor:
+	sw s6, (s2)
+	sw s5, (s7)
+	add s2, zero, s7
+	j ordena_elementos 
+	
+init:
+	add s2, zero, s0 #coloca o primeiro endereco novamente no s2 para futura ordenacao
+	j lista_opcoes
+
+#função que faz a remoção do valor pelo indice passado
 remover_por_indice:
 	j end
-	
+
+#funcao que faz a remocao pelo valor passado	
 remover_por_valor:
 	j end
 
+#começa funcao para imprimir o vetor
 listar_elementos:
-	j end
+	add s3, zero, s0
+	beq t1, zero, errodelistagem
+	la a0, msg_vet
+	li a7, 4
+	ecall
+	j lista
+	
+lista:
+	lw a0, (s3)
+	li a7, 1
+	ecall
+	lw s3, 4(s3)
+	beq s3, zero, fimlistagem
+	la a0, space
+	li a7, 4
+	ecall
+	j lista
+	
+fimlistagem:
+	add s3, zero, s0 #retorna s0 para o endereco inicial da lista
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	j lista_opcoes
+	
+	
+errodelistagem: #se a lista estiver vazia, ele da mensagem de erro e retorna para o menu
+	la a0, msg_erro_listagem
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	j lista_opcoes
+	
+#funcao para finalizar o programa	
 end:
 	nop
 	ebreak
