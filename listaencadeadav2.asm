@@ -16,7 +16,12 @@ msg_qual_valor: .string "Digite o valor a ser inserido na lista"
 msg_erro_inser: .string "Nao foi possivel inserir o valor na lista"
 msg_erro_listagem: .string "Lista está vazia!"
 msg_digite_indice: .string "Digite o indice o qual deseja remover"
-msg_indice maior: .string "O numero e maior do que o numero de indices inseridos no vetor!"
+msg_indice_maior: .string "O numero e maior do que o numero de indices inseridos no vetor!"
+msg_nao_encontrou: .string "O valor nao consta no vetor!"
+msg_digite_valor: .string "Digite o valor o qual deseja remover"
+vlr_prim_rem:	.string "Primeiro valor removido com exito!"
+vlr_ult_rem:	.string "Ultimo valor removido com exito!"
+lst_vazia:	.string "Lista vazia!"
 
 	.text
 main:
@@ -24,8 +29,11 @@ main:
 	add s0, zero, sp #carrega endereço inicial do vetor alocado
 	add s1, zero, sp #carrega endereço inicial do vetor alocado p/ futuras insercoes
 	add s2, zero, sp #carrega endereço inicial do vetor alocado p/ futuras ordenacoes
+	add s3, zero, s0 #carrega endereço inicial do vetor alocado p/ futuras remocoes
 	add t1, zero, zero #contador do numero de insercoes feitas
 	addi t2, zero, 4 #add 4 p/ deslocamento futuro
+	add s10, zero, zero #futuramente usado para remover elemento
+	add a4, zero, zero
 	j lista_opcoes
 
 lista_opcoes: #faz chamada para listar todos os elementos que podem ser chamados
@@ -114,6 +122,7 @@ insere_primeiro:
 	j lista_opcoes
 	
 #funcão que ordena os elementos adicionados
+#nao funcional ainda
 ordena_elementos:
 	#add t5, s2, t2
 	#lw t5, (t5)
@@ -135,9 +144,10 @@ init:
 	add s2, zero, s0 #coloca o primeiro endereco novamente no s2 para futura ordenacao
 	j lista_opcoes
 
-#função que faz a remoção do valor pelo indice passado
-remover_por_indice:
-	la a0, msg_digite_indice
+#função que faz a remoção do valor passado
+remover_por_valor:
+	beq, t1, zero, lista_vazia
+	la a0, msg_digite_valor
 	li a7, 4
 	ecall
 	la a0, quebra_linha
@@ -145,14 +155,51 @@ remover_por_indice:
 	ecall
 	li a7, 5 #le valor digitado no teclado e armazena em a0
 	ecall
-	bge a0, t1, valor_acima
 	jal for
-
+	
+lista_vazia:
+	la a0, lst_vazia
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	j lista_opcoes
 for:
-	s3
+	lw s5, (s3) #armazena o valor que esta no end s3 no reg s5
+	lw s3, 4(s3) #armazena o end do proximo elemento pra verificar novamente
+	beq s3, zero, ultimo_valor
+	beq s5, a0, encontrou_valor_remocao
+	addi s10, s10, 1
+	add s4, zero, s3
+	j for
 
-valor_acima:
-	la a0, msg_indice maior
+ultimo_valor:
+	beq s5, a0, encontrou_valor_remocao_ultimo
+	j nao_encontrou
+			
+encontrou_valor_remocao:
+	add s11, zero, zero
+	beq s10, s11, remover_primeiro_elem
+	
+encontrou_valor_remocao_ultimo:
+	sw a4, (s4)	
+	la a0, vlr_ult_rem
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	add s3, zero, s0
+	j lista_opcoes
+	
+remover_primeiro_elem: #atualiza o endereco inicial do vetor pro segundo
+	lw s9, 4(s0)
+	add s0, zero, s9
+	add s1, zero, s9
+	add s2, zero, s9
+	add s3, zero, s9
+	la a0, vlr_prim_rem
 	li a7, 4
 	ecall
 	la a0, quebra_linha
@@ -160,8 +207,28 @@ valor_acima:
 	ecall
 	j lista_opcoes
 	
-#funcao que faz a remocao pelo valor passado	
-remover_por_valor:
+nao_encontrou:
+	la a0, msg_nao_encontrou
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	add s10, zero, zero
+	j lista_opcoes
+	
+valor_acima:
+	la a0, msg_indice_maior
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	add s10, zero, zero
+	j lista_opcoes
+	
+#funcao que faz a remocao pelo indice da lista passado	
+remover_por_indice:
 	j end
 
 #começa funcao para imprimir o vetor
