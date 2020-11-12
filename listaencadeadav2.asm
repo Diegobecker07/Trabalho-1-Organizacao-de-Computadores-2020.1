@@ -32,11 +32,13 @@ main:
 	add s3, zero, s0 #carrega endereço inicial do vetor alocado p/ futuras remocoes
 	add t1, zero, zero #contador do numero de insercoes feitas
 	addi t2, zero, 4 #add 4 p/ deslocamento futuro
-	add s10, zero, zero #futuramente usado para remover elemento
+	addi s10, zero, 1 #futuramente usado para remover elemento
 	add a4, zero, zero
 	j lista_opcoes
+################################################################################################## OK
 
-lista_opcoes: #faz chamada para listar todos os elementos que podem ser chamados
+ #faz chamada para listar todos os elementos que podem ser chamados
+lista_opcoes:
 	addi t6, zero, 1
 	la a0, msg_opc
 	li a7, 4
@@ -93,7 +95,8 @@ lista_opcoes: #faz chamada para listar todos os elementos que podem ser chamados
 	li a7, 4
 	ecall
 	j lista_opcoes
-	
+############################################################################################################
+#função para inserir um elemento na lista
 insere_elemento:
 	la a0, msg_qual_valor
 	li a7, 4
@@ -104,23 +107,24 @@ insere_elemento:
 	li a7, 5 #le valor digitado no teclado e armazena em a0
 	ecall
 	beq t1, zero, insere_primeiro
-	addi sp, sp, -8
+	addi sp, sp, -8 #armazena 8 bytes sendo 4 para o inteiro e 4 para o próx endereço
 	sw a0, (sp)
 	sw zero, 4(sp)
 	sw sp, (s1) #armazena o endereço do segundo elemento no nó do anterior
 	add s1, sp, t2	#carrega o endereco que vai o prox endereco do valor da lista
-	addi t1, t1, 1
+	addi t1, t1, 1 #incrementa o valor de quantos tem na lista
 	j lista_opcoes
 	#j ordena_elementos
 
-#função que faz a inserção dos dados na lista
+#função que faz a inserção do primeiro valor na lista
 insere_primeiro:
 	sw a0, (sp)
 	sw zero, 4(sp)
 	addi t1, zero, 1
 	add s1, sp, t2 #carrega o endereco que vai o prox endereco do valor da lista
 	j lista_opcoes
-	
+######################################################################################################## Ok
+
 #funcão que ordena os elementos adicionados
 #nao funcional ainda
 ordena_elementos:
@@ -143,9 +147,9 @@ swap_vetor:
 init:
 	add s2, zero, s0 #coloca o primeiro endereco novamente no s2 para futura ordenacao
 	j lista_opcoes
-
-#função que faz a remoção do valor passado
-remover_por_valor:
+################################################################################################## <VERIFICAR>
+#função que faz a remoção na lista do valor passado, se existir
+remover_por_valor: #solicita o valor que deseja ser removido, caso a lista não esteja vazia
 	beq, t1, zero, lista_vazia
 	la a0, msg_digite_valor
 	li a7, 4
@@ -157,7 +161,7 @@ remover_por_valor:
 	ecall
 	jal for
 	
-lista_vazia:
+lista_vazia: #retorna mensagem dizendo q a lista esta vazia para remover algum elemento
 	la a0, lst_vazia
 	li a7, 4
 	ecall
@@ -165,22 +169,40 @@ lista_vazia:
 	li a7, 4
 	ecall
 	j lista_opcoes
-for:
+	
+for: #loop para percorrer a lista e procurar o elemento a ser removido
 	lw s5, (s3) #armazena o valor que esta no end s3 no reg s5
+	beq s10, t1, ultimo_valor #verifica se e o ultimo valor do for
+	beq s5, a0, encontrou_valor_remocao #verifica se o valor foi encontrado
 	lw s3, 4(s3) #armazena o end do proximo elemento pra verificar novamente
-	beq s3, zero, ultimo_valor
-	beq s5, a0, encontrou_valor_remocao
 	addi s10, s10, 1
-	add s4, zero, s3
 	j for
 
-ultimo_valor:
+ultimo_valor: #quando chega no ultimo valor e n encontrou, faço uma chamada especial para ver se o ultimo é o valor procurado, ou se nenhum valor digitado possui na lista
 	beq s5, a0, encontrou_valor_remocao_ultimo
 	j nao_encontrou
 			
 encontrou_valor_remocao:
-	add s11, zero, zero
+	addi s11, zero, 1
 	beq s10, s11, remover_primeiro_elem
+	j rem_elem_meio
+
+rem_elem_meio:
+	la a0, msg_qual_valor
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
 	
 encontrou_valor_remocao_ultimo:
 	sw a4, (s4)	
@@ -193,7 +215,7 @@ encontrou_valor_remocao_ultimo:
 	add s3, zero, s0
 	j lista_opcoes
 	
-remover_primeiro_elem: #atualiza o endereco inicial do vetor pro segundo
+remover_primeiro_elem: #atualiza o endereco inicial do vetor pro segundo, teoricamente removendo o primeiro elemento
 	lw s9, 4(s0)
 	add s0, zero, s9
 	add s1, zero, s9
@@ -207,7 +229,7 @@ remover_primeiro_elem: #atualiza o endereco inicial do vetor pro segundo
 	ecall
 	j lista_opcoes
 	
-nao_encontrou:
+nao_encontrou: #retorna a mensagem que o valor inserido nao está na lista
 	la a0, msg_nao_encontrou
 	li a7, 4
 	ecall
@@ -215,7 +237,15 @@ nao_encontrou:
 	li a7, 4
 	ecall
 	add s10, zero, zero
+	add s5, zero, zero
+	add, s3, zero, s0
 	j lista_opcoes
+	
+################################################################################################<VERIFICAR>
+	
+#funcao que faz a remocao pelo indice da lista informado pelo usuário	
+remover_por_indice:
+	j end
 	
 valor_acima:
 	la a0, msg_indice_maior
@@ -226,11 +256,8 @@ valor_acima:
 	ecall
 	add s10, zero, zero
 	j lista_opcoes
-	
-#funcao que faz a remocao pelo indice da lista passado	
-remover_por_indice:
-	j end
 
+############################################################################################# OK
 #começa funcao para imprimir o vetor
 listar_elementos:
 	add s3, zero, s0
@@ -240,7 +267,7 @@ listar_elementos:
 	ecall
 	j lista
 	
-lista:
+lista:	#Faz um loop para impressao 
 	lw a0, (s3)
 	li a7, 1
 	ecall
@@ -251,8 +278,8 @@ lista:
 	ecall
 	j lista
 	
-fimlistagem:
-	add s3, zero, s0 #retorna s0 para o endereco inicial da lista
+fimlistagem: #quebra linha e volta para o menu após terminar de listar os elementos
+	add s3, zero, s0 #retorna s3 para o endereco inicial da lista
 	la a0, quebra_linha
 	li a7, 4
 	ecall
@@ -268,6 +295,7 @@ errodelistagem: #se a lista estiver vazia, ele da mensagem de erro e retorna par
 	ecall
 	j lista_opcoes
 	
+################################################################################################# OK
 #funcao para finalizar o programa	
 end:
 	nop
