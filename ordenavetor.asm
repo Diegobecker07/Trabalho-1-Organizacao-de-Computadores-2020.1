@@ -1,20 +1,28 @@
 .data
-vector: 5,9,11
+	vector: .word 5,9,3,8,5,7
 .text
 main:
-la a0,vector
-addi a1,zero,1
-addi a2, zero, 2
-jal swap
-nop
-ebreak
-swap:
-slli a1,a1,2
-add a1,a1,a0
-lw t0, (a1)
-slli a2,a2,2
-add a2,a2,a0
-lw t1,(a2)
-sw t0, (a2)
-sw t1, (a1)
-ret
+	la a0, vector
+	lw t0,0(a0)
+	add a2,zero,t0
+	addi a1,zero,6
+	addi t1, zero,0
+	j search
+search:
+	beq t1,a1, end
+	lw t0, (a0)
+	bge a2,t0,menor
+	j adi1
+adi1:
+	addi t1,t1,1
+	addi a0,a0,4
+	j search
+menor:
+	add a2,zero, t0
+	add s0,zero, t1
+	j adi1
+end:
+	add a1, zero,a2
+	add a0, zero,s0
+	nop
+	ebreak

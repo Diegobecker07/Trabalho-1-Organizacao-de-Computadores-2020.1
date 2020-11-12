@@ -15,6 +15,8 @@ msg_valor_erro: .string "Valor digitado invalido insiva novamente um valor valid
 msg_qual_valor: .string "Digite o valor a ser inserido na lista"
 msg_erro_inser: .string "Nao foi possivel inserir o valor na lista"
 msg_erro_listagem: .string "Lista está vazia!"
+msg_digite_indice: .string "Digite o indice o qual deseja remover"
+msg_indice maior: .string "O numero e maior do que o numero de indices inseridos no vetor!"
 
 	.text
 main:
@@ -123,8 +125,6 @@ ordena_elementos:
 	add s8, zero, ra #guarda valor pra retorno
 	blt s6, s5, swap_vetor
 	
-	
-	
 swap_vetor:
 	sw s6, (s2)
 	sw s5, (s7)
@@ -137,8 +137,29 @@ init:
 
 #função que faz a remoção do valor pelo indice passado
 remover_por_indice:
-	j end
+	la a0, msg_digite_indice
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	li a7, 5 #le valor digitado no teclado e armazena em a0
+	ecall
+	bge a0, t1, valor_acima
+	jal for
 
+for:
+	s3
+
+valor_acima:
+	la a0, msg_indice maior
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	j lista_opcoes
+	
 #funcao que faz a remocao pelo valor passado	
 remover_por_valor:
 	j end
