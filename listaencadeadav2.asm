@@ -15,13 +15,14 @@ msg_valor_erro: .string "Valor digitado invalido insiva novamente um valor valid
 msg_qual_valor: .string "Digite o valor a ser inserido na lista"
 msg_erro_inser: .string "Nao foi possivel inserir o valor na lista"
 msg_erro_listagem: .string "Lista está vazia!"
-msg_digite_indice: .string "Digite o indice o qual deseja remover"
 msg_indice_maior: .string "O numero e maior do que o numero de indices inseridos no vetor!"
 msg_nao_encontrou: .string "O valor nao consta no vetor!"
 msg_digite_valor: .string "Digite o valor o qual deseja remover"
 vlr_prim_rem:	.string "Primeiro valor removido com exito!"
 vlr_ult_rem:	.string "Ultimo valor removido com exito!"
 lst_vazia:	.string "Lista vazia!"
+msg_digite_indice: .string "Digite qual índice voce deseja remover"
+msg_2_indice: .string "Segundo indice removido com sucesso!"
 
 	.text
 main:
@@ -148,10 +149,11 @@ init:
 	add s2, zero, s0 #coloca o primeiro endereco novamente no s2 para futura ordenacao
 	j lista_opcoes
 ################################################################################################## <VERIFICAR>
+
 #função que faz a remoção na lista do valor passado, se existir
 remover_por_valor: #solicita o valor que deseja ser removido, caso a lista não esteja vazia
-	beq, t1, zero, lista_vazia
-	la a0, msg_digite_valor
+	beq, t1, zero, lista_vazia #se t1 é zero, desvia pro erro de lista vazia
+	la a0, msg_digite_valor	#pede valor no teclado
 	li a7, 4
 	ecall
 	la a0, quebra_linha
@@ -159,7 +161,7 @@ remover_por_valor: #solicita o valor que deseja ser removido, caso a lista não e
 	ecall
 	li a7, 5 #le valor digitado no teclado e armazena em a0
 	ecall
-	jal for
+	jal for #desvia pro loop
 	
 lista_vazia: #retorna mensagem dizendo q a lista esta vazia para remover algum elemento
 	la a0, lst_vazia
@@ -168,6 +170,7 @@ lista_vazia: #retorna mensagem dizendo q a lista esta vazia para remover algum e
 	la a0, quebra_linha
 	li a7, 4
 	ecall
+	jal limpa_reg
 	j lista_opcoes
 	
 for: #loop para percorrer a lista e procurar o elemento a ser removido
@@ -184,25 +187,8 @@ ultimo_valor: #quando chega no ultimo valor e n encontrou, faço uma chamada espe
 			
 encontrou_valor_remocao:
 	addi s11, zero, 1
-	beq s10, s11, remover_primeiro_elem
-	j rem_elem_meio
+	beq s10, s11, remover_primeiro_elem #desvia para funcao que remove primeiro indice
 
-rem_elem_meio:
-	la a0, msg_qual_valor
-	li a7, 4
-	ecall
-	la a0, quebra_linha
-	li a7, 4
-	ecall
-	la a0, quebra_linha
-	li a7, 4
-	ecall
-	la a0, quebra_linha
-	li a7, 4
-	ecall
-	la a0, quebra_linha
-	li a7, 4
-	ecall
 	
 encontrou_valor_remocao_ultimo:
 	sw a4, (s4)	
@@ -212,7 +198,7 @@ encontrou_valor_remocao_ultimo:
 	la a0, quebra_linha
 	li a7, 4
 	ecall
-	add s3, zero, s0
+	jal limpa_reg
 	j lista_opcoes
 	
 remover_primeiro_elem: #atualiza o endereco inicial do vetor pro segundo, teoricamente removendo o primeiro elemento
@@ -227,6 +213,7 @@ remover_primeiro_elem: #atualiza o endereco inicial do vetor pro segundo, teoric
 	la a0, quebra_linha
 	li a7, 4
 	ecall
+	jal limpa_reg
 	j lista_opcoes
 	
 nao_encontrou: #retorna a mensagem que o valor inserido nao está na lista
@@ -236,16 +223,64 @@ nao_encontrou: #retorna a mensagem que o valor inserido nao está na lista
 	la a0, quebra_linha
 	li a7, 4
 	ecall
-	add s10, zero, zero
-	add s5, zero, zero
-	add, s3, zero, s0
+	jal limpa_reg
 	j lista_opcoes
-	
+
+limpa_reg:
+	addi s10, zero, 1
+	add s5, zero, zero
+	add s3, zero, s0
+	add s11, zero, zero
+	ret
 ################################################################################################<VERIFICAR>
 	
 #funcao que faz a remocao pelo indice da lista informado pelo usuário	
 remover_por_indice:
-	j end
+	la a0, msg_digite_indice
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	li a7, 5 #le valor digitado no teclado e armazena em a0
+	ecall
+	addi s9, zero, 1
+	bge a0, t1, valor_acima #se o valor digitado é maior do que o índice, ele desvia avisando o erro e volta para o menu
+	beq a0, s9, remove_prim
+	j insere_posicoes
+
+insere_posicoes:
+	addi s9, s9, 1
+	addi s4, s3, 4 #pega o end de mem do segundo valor
+	lw s5, 4(s3) #pega pega o end de mem do segundo valor
+	lw s8, (s5) #le o valor que vao ser verificado
+	lw s7, 4(s5)
+	beq a0, s9, swap1
+swap1:
+	sw s7, (s4)
+	la a0, msg_2_indice
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	jal lmp_reg
+	j lista_opcoes
+	
+remove_prim:
+	lw s5, 4(s3)
+	add s0, zero, s5
+	add s1, zero, s5
+	add s2, zero, s5
+	add s3, zero, s5
+	la a0, vlr_prim_rem
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	jal lmp_reg
+	j lista_opcoes
 	
 valor_acima:
 	la a0, msg_indice_maior
@@ -254,9 +289,17 @@ valor_acima:
 	la a0, quebra_linha
 	li a7, 4
 	ecall
-	add s10, zero, zero
 	j lista_opcoes
 
+lmp_reg:
+	add s5, zero, zero
+	add s6, zero, zero
+	add s7, zero, zero
+	add s8, zero, zero
+	add s9, zero, zero
+	add t3, zero, zero
+	ret
+	
 ############################################################################################# OK
 #começa funcao para imprimir o vetor
 listar_elementos:
