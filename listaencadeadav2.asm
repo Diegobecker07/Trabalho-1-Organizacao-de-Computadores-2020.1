@@ -256,6 +256,11 @@ insere_posicoes:
 	lw s8, (s5) #le o valor que vao ser verificado
 	lw s7, 4(s5)
 	beq a0, s9, swap1
+	addi s9, s9, 1
+	j percorre_lista
+
+percorre_lista:
+	
 swap1:
 	sw s7, (s4)
 	la a0, msg_2_indice
