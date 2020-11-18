@@ -23,6 +23,7 @@ vlr_ult_rem:	.string "Ultimo valor removido com exito!"
 lst_vazia:	.string "Lista vazia!"
 msg_digite_indice: .string "Digite qual índice voce deseja remover"
 msg_2_indice: .string "Segundo indice removido com sucesso!"
+msg_rm_sucesso: .string "Valor removido com sucesso!"
 
 	.text
 main:
@@ -148,7 +149,7 @@ swap_vetor:
 init:
 	add s2, zero, s0 #coloca o primeiro endereco novamente no s2 para futura ordenacao
 	j lista_opcoes
-################################################################################################## <VERIFICAR>
+################################################################################################## OK
 
 #função que faz a remoção na lista do valor passado, se existir
 remover_por_valor: #solicita o valor que deseja ser removido, caso a lista não esteja vazia
@@ -175,29 +176,43 @@ lista_vazia: #retorna mensagem dizendo q a lista esta vazia para remover algum e
 	
 for: #loop para percorrer a lista e procurar o elemento a ser removido
 	lw s5, (s3) #armazena o valor que esta no end s3 no reg s5
-	beq s10, t1, ultimo_valor #verifica se e o ultimo valor do for
 	beq s5, a0, encontrou_valor_remocao #verifica se o valor foi encontrado
+	addi s4, s3, 4 #s4 recebe o end do anterior
 	lw s3, 4(s3) #armazena o end do proximo elemento pra verificar novamente
+	#beq s10, t1, ultimo_valor #verifica se e o ultimo valor do for
 	addi s10, s10, 1
 	j for
-
-ultimo_valor: #quando chega no ultimo valor e n encontrou, faço uma chamada especial para ver se o ultimo é o valor procurado, ou se nenhum valor digitado possui na lista
-	beq s5, a0, encontrou_valor_remocao_ultimo
-	j nao_encontrou
 			
 encontrou_valor_remocao:
 	addi s11, zero, 1
 	beq s10, s11, remover_primeiro_elem #desvia para funcao que remove primeiro indice
-
+	lw s6, 4(s3) #se o end do prox é zero, então ele e o ultimo valor
+	beq zero, s6, encontrou_valor_remocao_ultimo
+	j remocao_valor_meio
+	
+remocao_valor_meio:
+	sw s6, (s4)
+	la a0, msg_rm_sucesso
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	jal limpa_reg
+	j lista_opcoes
 	
 encontrou_valor_remocao_ultimo:
-	sw a4, (s4)	
+	sw zero, (s3)
+	sw zero, (s4)
+	addi sp, sp, 8
+	add s1, zero, s4
 	la a0, vlr_ult_rem
 	li a7, 4
 	ecall
 	la a0, quebra_linha
 	li a7, 4
 	ecall
+	addi t1, t1, -1
 	jal limpa_reg
 	j lista_opcoes
 	
@@ -228,7 +243,9 @@ nao_encontrou: #retorna a mensagem que o valor inserido nao está na lista
 
 limpa_reg:
 	addi s10, zero, 1
+	add s6, zero, zero
 	add s5, zero, zero
+	add s4, zero, zero
 	add s3, zero, s0
 	add s11, zero, zero
 	ret
