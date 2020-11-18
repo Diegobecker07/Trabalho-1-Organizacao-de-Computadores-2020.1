@@ -271,17 +271,17 @@ remover_por_indice:
 	lw s3, 4(s3) #armazena o endereço do segundo
 	j for1
 
-for1:
+for1:	#ver
 	addi s9, s9, 1
 	lw s5, (s3) #armazena o valor da lista
 	add s6, zero, s4
 	lw s4, 4(s3) #armazena o endereço do segundo
 	lw s3, (s4)
 	beq s9, a0, remove_indice
-	j for1
+	j for1		
 	
 remove_indice:
-	
+	sw s3, (s6)
 	jal lmp_reg
 	addi t1, t1, -1
 	j lista_opcoes
