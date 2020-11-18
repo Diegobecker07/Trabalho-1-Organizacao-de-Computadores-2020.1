@@ -199,6 +199,7 @@ remocao_valor_meio:
 	li a7, 4
 	ecall
 	jal limpa_reg
+	addi t1, t1, -1
 	j lista_opcoes
 	
 encontrou_valor_remocao_ultimo:
@@ -229,6 +230,7 @@ remover_primeiro_elem: #atualiza o endereco inicial do vetor pro segundo, teoric
 	li a7, 4
 	ecall
 	jal limpa_reg
+	addi t1, t1, -1
 	j lista_opcoes
 	
 nao_encontrou: #retorna a mensagem que o valor inserido nao está na lista
@@ -264,29 +266,24 @@ remover_por_indice:
 	addi s9, zero, 1
 	bge a0, t1, valor_acima #se o valor digitado é maior do que o índice, ele desvia avisando o erro e volta para o menu
 	beq a0, s9, remove_prim
-	j insere_posicoes
+	lw s5, (s3) #armazena o primeiro valor da lista
+	addi s4, s3, 4 #armazena o end do no do prim elemento
+	lw s3, 4(s3) #armazena o endereço do segundo
+	j for1
 
-insere_posicoes:
+for1:
 	addi s9, s9, 1
-	addi s4, s3, 4 #pega o end de mem do segundo valor
-	lw s5, 4(s3) #pega pega o end de mem do segundo valor
-	lw s8, (s5) #le o valor que vao ser verificado
-	lw s7, 4(s5)
-	beq a0, s9, swap1
-	addi s9, s9, 1
-	j percorre_lista
-
-percorre_lista:
+	lw s5, (s3) #armazena o valor da lista
+	add s6, zero, s4
+	lw s4, 4(s3) #armazena o endereço do segundo
+	lw s3, (s4)
+	beq s9, a0, remove_indice
+	j for1
 	
-swap1:
-	sw s7, (s4)
-	la a0, msg_2_indice
-	li a7, 4
-	ecall
-	la a0, quebra_linha
-	li a7, 4
-	ecall
+remove_indice:
+	
 	jal lmp_reg
+	addi t1, t1, -1
 	j lista_opcoes
 	
 remove_prim:
@@ -302,6 +299,7 @@ remove_prim:
 	li a7, 4
 	ecall
 	jal lmp_reg
+	addi t1, t1, -1
 	j lista_opcoes
 	
 valor_acima:
@@ -311,6 +309,7 @@ valor_acima:
 	la a0, quebra_linha
 	li a7, 4
 	ecall
+	jal lmp_reg
 	j lista_opcoes
 
 lmp_reg:
