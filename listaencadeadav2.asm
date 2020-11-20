@@ -36,6 +36,7 @@ main:
 	addi t2, zero, 4 #add 4 p/ deslocamento futuro
 	addi s10, zero, 1 #futuramente usado para remover elemento
 	add a4, zero, zero
+	addi a6, zero, 1
 	j lista_opcoes
 ################################################################################################## OK
 
@@ -179,7 +180,6 @@ for: #loop para percorrer a lista e procurar o elemento a ser removido
 	beq s5, a0, encontrou_valor_remocao #verifica se o valor foi encontrado
 	addi s4, s3, 4 #s4 recebe o end do anterior
 	lw s3, 4(s3) #armazena o end do proximo elemento pra verificar novamente
-	#beq s10, t1, ultimo_valor #verifica se e o ultimo valor do for
 	addi s10, s10, 1
 	j for
 			
@@ -263,31 +263,48 @@ remover_por_indice:
 	ecall
 	li a7, 5 #le valor digitado no teclado e armazena em a0
 	ecall
-	addi s9, zero, 1
-	bge a0, t1, valor_acima #se o valor digitado é maior do que o índice, ele desvia avisando o erro e volta para o menu
-	beq a0, s9, remove_prim
-	lw s5, (s3) #armazena o primeiro valor da lista
-	addi s4, s3, 4 #armazena o end do no do prim elemento
-	lw s3, 4(s3) #armazena o endereço do segundo
+	blt t1, s10, valor_acima
+	beq a0, s10, remove_prim
 	j for1
 
-for1:	#ver
-	addi s9, s9, 1
-	lw s5, (s3) #armazena o valor da lista
-	add s6, zero, s4
-	lw s4, 4(s3) #armazena o endereço do segundo
-	lw s3, (s4)
-	beq s9, a0, remove_indice
+for1:	
+	lw s5, (s3)
+	beq s10, a0, encontrou_valor
+	addi s4, s3, 4
+	lw s3, 4(s3)
+	addi s10, s10, 1
 	j for1		
 	
-remove_indice:
-	sw s3, (s6)
-	jal lmp_reg
+encontrou_valor:
+	lw s3, 4(s3)
+	beq s3, zero, rem_ultimo
+	sw s3, (s4)
+	la a0, msg_rm_sucesso
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	jal limpa_reg
 	addi t1, t1, -1
 	j lista_opcoes
 	
+rem_ultimo:
+	sw zero, (s4)
+	addi sp, sp, 8
+	add s1, zero, s4
+	la a0, vlr_ult_rem
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	addi t1, t1, -1
+	jal limpa_reg
+	j lista_opcoes
+	
 remove_prim:
-	lw s5, 4(s3)
+	lw s5, 4(s0)
 	add s0, zero, s5
 	add s1, zero, s5
 	add s2, zero, s5
@@ -298,7 +315,7 @@ remove_prim:
 	la a0, quebra_linha
 	li a7, 4
 	ecall
-	jal lmp_reg
+	jal limpa_reg
 	addi t1, t1, -1
 	j lista_opcoes
 	
@@ -313,11 +330,13 @@ valor_acima:
 	j lista_opcoes
 
 lmp_reg:
+	add s3, zero, s0
 	add s5, zero, zero
 	add s6, zero, zero
 	add s7, zero, zero
 	add s8, zero, zero
 	add s9, zero, zero
+	addi s10, zero, 1
 	add t3, zero, zero
 	ret
 	
