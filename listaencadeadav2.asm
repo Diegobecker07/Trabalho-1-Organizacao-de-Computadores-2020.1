@@ -127,29 +127,10 @@ insere_primeiro:
 	add s1, sp, t2 #carrega o endereco que vai o prox endereco do valor da lista
 	j lista_opcoes
 ######################################################################################################## Ok
-
 #funcão que ordena os elementos adicionados
 #nao funcional ainda
 ordena_elementos:
-	#add t5, s2, t2
-	#lw t5, (t5)
-	#beq t5, zero, lista_opcoes 
-	lw s5, (s2) #carrega o valor de s2(que no inicio é o primeiro end do vetor) 
-	lw s7, 4(s2) #carrega endereço do prox elemento em s7
-	beq s7, zero, init
-	lw s6, (s7)
-	add s8, zero, ra #guarda valor pra retorno
-	blt s6, s5, swap_vetor
 	
-swap_vetor:
-	sw s6, (s2)
-	sw s5, (s7)
-	add s2, zero, s7
-	j ordena_elementos 
-	
-init:
-	add s2, zero, s0 #coloca o primeiro endereco novamente no s2 para futura ordenacao
-	j lista_opcoes
 ################################################################################################## OK
 
 #função que faz a remoção na lista do valor passado, se existir
