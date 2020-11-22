@@ -10,30 +10,38 @@ msp_opc_3:	.string "3 - Remover elemento por valor"
 msp_opc_4:	.string "4 - Listar elementos da lista"
 msp_opc_5:	.string "5 - Sair"
 msg_vet:	.string "Vetor: "
-msg_vet1:	.string "Vetor: "
-msg_vet2:	.string "Vetor: "
-msg_vet3:	.string "Vetor: "
 space:		.string " "
-space1:		.string "abc"
-space2:		.string " "
 msg_valor_erro: .string "Valor digitado invalido insiva novamente um valor valido"
 msg_qual_valor: .string "Digite o valor a ser inserido na lista"
 msg_erro_inser: .string "Nao foi possivel inserir o valor na lista"
+msg_erro_listagem: .string "Lista está vazia!"
+msg_indice_maior: .string "O numero e maior do que o numero de indices inseridos no vetor!"
+msg_nao_encontrou: .string "O valor nao consta no vetor!"
+msg_digite_valor: .string "Digite o valor o qual deseja remover"
+vlr_prim_rem:	.string "Primeiro valor removido com exito!"
+vlr_ult_rem:	.string "Ultimo valor removido com exito!"
+lst_vazia:	.string "Lista vazia!"
+msg_digite_indice: .string "Digite qual índice voce deseja remover"
+msg_2_indice: .string "Segundo indice removido com sucesso!"
+msg_rm_sucesso: .string "Valor removido com sucesso!"
 
-vetor:	.word
 	.text
 main:
-	la s0, vetor	#carrega o end inicial do vetor em s0
-	la s1, vetor	#carrega o end inicial do vetor em s1 para incrementar futuras insercoes
-	addi t1, zero, 0 #contador do numero de insercoes feitas
-	addi a2, zero, 1 #adiciona 2 no reg a2 p/ descolamento futuro
-	slli a2, a2, 2	#multiplica para futuro deslocamento para insercao do endereco do proximo elemento
-	addi a3, zero, 2
-	slli a3, a3, 4
-	addi a3, a3, -4 #faz somatoria que sera o numero de bytes a ser deslocado para o prox segmento de dados, onde sera armazenado o prox valor la lista
+	addi sp, sp, -8
+	add s0, zero, sp #carrega endereço inicial do vetor alocado
+	add s1, zero, sp #carrega endereço inicial do vetor alocado p/ futuras insercoes
+	add s2, zero, sp #carrega endereço inicial do vetor alocado p/ futuras ordenacoes
+	add s3, zero, s0 #carrega endereço inicial do vetor alocado p/ futuras remocoes
+	add t1, zero, zero #contador do numero de insercoes feitas
+	addi t2, zero, 4 #add 4 p/ deslocamento futuro
+	addi s10, zero, 1 #futuramente usado para remover elemento
+	add a4, zero, zero
+	addi a6, zero, 1
 	j lista_opcoes
+################################################################################################## OK
 
-lista_opcoes: #faz chamada para listar todos os elementos que podem ser chamados
+ #faz chamada para listar todos os elementos que podem ser chamados
+lista_opcoes:
 	addi t6, zero, 1
 	la a0, msg_opc
 	li a7, 4
@@ -89,8 +97,9 @@ lista_opcoes: #faz chamada para listar todos os elementos que podem ser chamados
 	la a0, quebra_linha
 	li a7, 4
 	ecall
-	j main
-	
+	j lista_opcoes
+############################################################################################################
+#função para inserir um elemento na lista
 insere_elemento:
 	la a0, msg_qual_valor
 	li a7, 4
@@ -98,41 +107,260 @@ insere_elemento:
 	la a0, quebra_linha
 	li a7, 4
 	ecall
-	li a7, 5	#pega valor digitado do teclado para armazenar na lista
+	li a7, 5 #le valor digitado no teclado e armazena em a0
 	ecall
-	sw a0, (s1)	#armazena o valor lido no registrador no endereco da lista
-	add s1, s1, a2 #pula para proximo end da pilha
-	add t2, s1, a3 #pula para o prox segmento de dados para insercao de novo valor
-	sw t2, (s1)
-	add s1, zero, t2
-	j ordena_elementos
+	beq t1, zero, insere_primeiro
+	addi sp, sp, -8 #armazena 8 bytes sendo 4 para o inteiro e 4 para o próx endereço
+	sw a0, (sp)
+	sw zero, 4(sp)
+	sw sp, (s1) #armazena o endereço do segundo elemento no nó do anterior
+	add s1, sp, t2	#carrega o endereco que vai o prox endereco do valor da lista
+	addi t1, t1, 1 #incrementa o valor de quantos tem na lista
+	j lista_opcoes
+	#j ordena_elementos
 
+#função que faz a inserção do primeiro valor na lista
+insere_primeiro:
+	sw a0, (sp)
+	sw zero, 4(sp)
+	addi t1, zero, 1
+	add s1, sp, t2 #carrega o endereco que vai o prox endereco do valor da lista
+	j lista_opcoes
+######################################################################################################## Ok
+#funcão que ordena os elementos adicionados
+#nao funcional ainda
 ordena_elementos:
 	
-	j lista_opcoes
-	
-remover_por_indice:
-	j end
-	
-remover_por_valor:
-	j end
+################################################################################################## OK
 
-listar_elementos:
-	#nao funcional ainda
-	la a0, msg_vet	#chama para imprimir vetor
+#função que faz a remoção na lista do valor passado, se existir
+remover_por_valor: #solicita o valor que deseja ser removido, caso a lista não esteja vazia
+	beq, t1, zero, lista_vazia #se t1 é zero, desvia pro erro de lista vazia
+	la a0, msg_digite_valor	#pede valor no teclado
 	li a7, 4
 	ecall
-	lw t1, (s0)	#carrega valor da primeira posicao em t1
-	add a0, t1, zero #o endereco do vetor esta em 
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	li a7, 5 #le valor digitado no teclado e armazena em a0
+	ecall
+	jal for #desvia pro loop
+	
+lista_vazia: #retorna mensagem dizendo q a lista esta vazia para remover algum elemento
+	la a0, lst_vazia
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	jal limpa_reg
+	j lista_opcoes
+	
+for: #loop para percorrer a lista e procurar o elemento a ser removido
+	lw s5, (s3) #armazena o valor que esta no end s3 no reg s5
+	beq s5, a0, encontrou_valor_remocao #verifica se o valor foi encontrado
+	addi s4, s3, 4 #s4 recebe o end do anterior
+	lw s3, 4(s3) #armazena o end do proximo elemento pra verificar novamente
+	addi s10, s10, 1
+	j for
+			
+encontrou_valor_remocao:
+	addi s11, zero, 1
+	beq s10, s11, remover_primeiro_elem #desvia para funcao que remove primeiro indice
+	lw s6, 4(s3) #se o end do prox é zero, então ele e o ultimo valor
+	beq zero, s6, encontrou_valor_remocao_ultimo
+	j remocao_valor_meio
+	
+remocao_valor_meio:
+	sw s6, (s4)
+	la a0, msg_rm_sucesso
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	jal limpa_reg
+	addi t1, t1, -1
+	j lista_opcoes
+	
+encontrou_valor_remocao_ultimo:
+	sw zero, (s3)
+	sw zero, (s4)
+	addi sp, sp, 8
+	add s1, zero, s4
+	la a0, vlr_ult_rem
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	addi t1, t1, -1
+	jal limpa_reg
+	j lista_opcoes
+	
+remover_primeiro_elem: #atualiza o endereco inicial do vetor pro segundo, teoricamente removendo o primeiro elemento
+	lw s9, 4(s0)
+	add s0, zero, s9
+	add s1, zero, s9
+	add s2, zero, s9
+	add s3, zero, s9
+	la a0, vlr_prim_rem
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	jal limpa_reg
+	addi t1, t1, -1
+	j lista_opcoes
+	
+nao_encontrou: #retorna a mensagem que o valor inserido nao está na lista
+	la a0, msg_nao_encontrou
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	jal limpa_reg
+	j lista_opcoes
+
+limpa_reg:
+	addi s10, zero, 1
+	add s6, zero, zero
+	add s5, zero, zero
+	add s4, zero, zero
+	add s3, zero, s0
+	add s11, zero, zero
+	ret
+################################################################################################<VERIFICAR>
+	
+#funcao que faz a remocao pelo indice da lista informado pelo usuário	
+remover_por_indice:
+	la a0, msg_digite_indice
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	li a7, 5 #le valor digitado no teclado e armazena em a0
+	ecall
+	blt t1, s10, valor_acima
+	beq a0, s10, remove_prim
+	j for1
+
+for1:	
+	lw s5, (s3)
+	beq s10, a0, encontrou_valor
+	addi s4, s3, 4
+	lw s3, 4(s3)
+	addi s10, s10, 1
+	j for1		
+	
+encontrou_valor:
+	lw s3, 4(s3)
+	beq s3, zero, rem_ultimo
+	sw s3, (s4)
+	la a0, msg_rm_sucesso
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	jal limpa_reg
+	addi t1, t1, -1
+	j lista_opcoes
+	
+rem_ultimo:
+	sw zero, (s4)
+	addi sp, sp, 8
+	add s1, zero, s4
+	la a0, vlr_ult_rem
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	addi t1, t1, -1
+	jal limpa_reg
+	j lista_opcoes
+	
+remove_prim:
+	lw s5, 4(s0)
+	add s0, zero, s5
+	add s1, zero, s5
+	add s2, zero, s5
+	add s3, zero, s5
+	la a0, vlr_prim_rem
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	jal limpa_reg
+	addi t1, t1, -1
+	j lista_opcoes
+	
+valor_acima:
+	la a0, msg_indice_maior
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	jal lmp_reg
+	j lista_opcoes
+
+lmp_reg:
+	add s3, zero, s0
+	add s5, zero, zero
+	add s6, zero, zero
+	add s7, zero, zero
+	add s8, zero, zero
+	add s9, zero, zero
+	addi s10, zero, 1
+	add t3, zero, zero
+	ret
+	
+############################################################################################# OK
+#começa funcao para imprimir o vetor
+listar_elementos:
+	add s3, zero, s0
+	beq t1, zero, errodelistagem
+	la a0, msg_vet
+	li a7, 4
+	ecall
+	j lista
+	
+lista:	#Faz um loop para impressao 
+	lw a0, (s3)
 	li a7, 1
 	ecall
+	lw s3, 4(s3)
+	beq s3, zero, fimlistagem
 	la a0, space
 	li a7, 4
 	ecall
-	addi a4, a4, 1
-	slli a4, a4, 2
-	lw t0, (a4)
-	sw s0, 4(a0)
+	j lista
+	
+fimlistagem: #quebra linha e volta para o menu após terminar de listar os elementos
+	add s3, zero, s0 #retorna s3 para o endereco inicial da lista
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	j lista_opcoes
+	
+	
+errodelistagem: #se a lista estiver vazia, ele da mensagem de erro e retorna para o menu
+	la a0, msg_erro_listagem
+	li a7, 4
+	ecall
+	la a0, quebra_linha
+	li a7, 4
+	ecall
+	j lista_opcoes
+	
+################################################################################################# OK
+#funcao para finalizar o programa	
 end:
 	nop
 	ebreak
