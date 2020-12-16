@@ -259,7 +259,7 @@ for: #loop para percorrer a lista e procurar o elemento a ser removido
 	lw s5, (s3) #armazena o valor que esta no end s3 no reg s5
 	beq s5, a0, encontrou_valor_remocao #verifica se o valor foi encontrado
 	addi s4, s3, 4 #s4 recebe o end do anterior
-	lw s3, 4(s3) #armazena o end do proximo elemento pra verificar novamente
+	lw s3, (s4) #armazena o end do proximo elemento pra verificar novamente
 	beq s3, zero, nao_encontrou
 	addi s10, s10, 1
 	j for
@@ -312,7 +312,6 @@ encontrou_valor_remocao_ultimo: #caso seja o ultimo valor que será removido, ent
 remover_primeiro_elem: #atualiza o endereco inicial do vetor pro segundo, teoricamente removendo o primeiro elemento
 	lw s9, 4(s0)
 	add s0, zero, s9
-	add s1, zero, s9
 	add s2, zero, s9
 	add s3, zero, s9
 	la a0, vlr_prim_rem
@@ -409,7 +408,6 @@ rem_ultimo: #função que remove o ultimo elemento, apagando o valor, e desalocand
 remove_prim: #função que remove o primeiro elemento da lista, mudando o end inicial da lista para o próximo
 	lw s5, 4(s0)
 	add s0, zero, s5
-	add s1, zero, s5
 	add s2, zero, s5
 	add s3, zero, s5
 	la a0, vlr_prim_rem
