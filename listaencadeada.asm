@@ -130,7 +130,8 @@ insere_elemento:
 	la a0, quebra_linha
 	li a7, 4
 	ecall
-	j ordena_elementos
+	#j ordena_elementos
+	j lista_opcoes
 
 #função que faz a inserção do primeiro valor na lista
 insere_primeiro:
@@ -154,11 +155,14 @@ ordena_elementos:
 
 for_ordena: #primeiro for do selection sort
 	jal add_inicio_vetor
-	lw t5, 4(t4) #carrega o endereço do próximo valor em t5
-	beq t5, zero, fim_ordenacao #caso t5 for zero, ou NULL neste caso, ele termina o for
+	lw a5, 4(t4)
+	lw s8, 4(a5)
+	beq s8, zero, fim_ordenacao #caso s8 for zero, ou NULL neste caso, ele termina o for
 	jal for_ordena2 #pula para o segundo for
 
 for_ordena2:
+	
+
 	lw a4, (t5) #carrega o valor e o endereço nos reg a4 e a5
 	lw a5, 4(t5)
 	beq a5, zero, terminou_segundo_for #caso o end do próximo é zero, ele termina o laço
@@ -168,10 +172,10 @@ for_ordena2:
 	
 add_inicio_vetor: #função para inserir o primeiro valor da lista e o seu endereço, tambem ja seta o mesmo como o menor valor, depois é feito a busca para ver se possui outro menor
 #para fazer o swap
-	add a2, zero, t4 #recebe o valor inicial e o seu endereço em a3
-	lw a3, (a2)
-	add s6, zero, a3 #s6 e s7 correspondem aos reg que guardam o menor valor e o seu endereço
-	add s7, zero, a2
+	add a2, zero, t4 #recebe o endereco inicial em a2
+	add a3, t4, t2 #recebe o endereco de onde está o nó
+	add s6, zero, a2 #s6 e s7 correspondem aos reg que guardam o end do menor valor feito no segundo for e o end do nó
+	add s7, zero, a3
 	ret
 	
 swap_menor_valor:
