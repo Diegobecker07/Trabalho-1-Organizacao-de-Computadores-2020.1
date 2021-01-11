@@ -130,8 +130,7 @@ insere_elemento:
 	la a0, quebra_linha
 	li a7, 4
 	ecall
-	#j ordena_elementos
-	j lista_opcoes
+	j ordena_elementos
 
 #função que faz a inserção do primeiro valor na lista
 insere_primeiro:
@@ -149,28 +148,77 @@ insere_primeiro:
 	j lista_opcoes
 ########################################################################################################
 #funcão que ordena os elementos adicionados baseado no algoritmo selection sort
-ordena_elementos:
-	add t4, zero, s0 #armazena o endereço inicial da lista em t4
-	j for_ordena
+ordena_elementos: #armazena o endereço inicial da lista em t4
+	add t4, zero, s0
+	j for_1
 
-for_ordena: #primeiro for do selection sort
+for_1: #primeiro for do selection sort
+	jal add_inicio_vetor
+	lw s4, (t4) #armazena o valor
+	add s5, t4, t2 #armazena o end do no
+	lw s6, 4(t4) #armazena o valor do no so proximo elemento
+	beq s6, zero, fim_ordenacao #caso s6 for zero, ou NULL neste caso, ele termina o for
+	jal for_2 #pula para o segundo for
+	
+for_2:
+	lw s7, (s6)
+	lw s8, 4(s6)
+	beq s8, zero, terminou_segundo_for #caso o end do próximo é zero, ele termina o laço
+	
+	
+add_inicio_vetor: #função para inserir o primeiro valor da lista e o seu endereço, tambem ja seta o mesmo como o menor valor, depois é feito a busca para ver se possui outro menor
+#para fazer o swap
+	add a2, zero, t4 #recebe o end do primeiro valor como o menor
+	add a3, t4, t2 #recebe o end do nó
+	add a4, zero, a2 #a4 e a5 correspondem aos reg que guardam o end do menor valor feito no segundo for e o end do nó
+	add a5, zero, a3 
+	ret
+
+terminou_segundo_for:
+	lw t4, 4(t4)
+	j for_1 #chama o primeiro for para começar a percorrer a partir do segundo valor
+
+fim_ordenacao: #Quando chega no fim da ordenação, chama função que limpa os registradores usados, e lista o menu novamente
+	jal limpa_regs
+	j lista_opcoes
+	
+limpa_regs: #função que limpa todos registradores usados
+	add a2, zero, zero
+	add a3, zero, zero
+	add a4, zero, zero
+	add a5, zero, zero
+	add s3, zero, s0
+	add s4, zero, zero
+	add s5, zero, zero
+	add s6, zero, zero
+	add s7, zero, zero
+	add s8, zero, zero
+	add t4, zero, zero
+	add t5, zero, zero
+	ret
+
+########################################################################################################
+#funcão que ordena os elementos adicionados baseado no algoritmo selection sort
+ordena_elementosw:
+	add t4, zero, s0 #armazena o endereço inicial da lista em t4
+	j for_ordena1w
+
+for_ordena1w: #primeiro for do selection sort
 	jal add_inicio_vetor
 	lw a5, 4(t4)
 	lw s8, 4(a5)
-	beq s8, zero, fim_ordenacao #caso s8 for zero, ou NULL neste caso, ele termina o for
-	jal for_ordena2 #pula para o segundo for
+	beq s8, zero, fim_ordenacaow #caso s8 for zero, ou NULL neste caso, ele termina o for
+	jal for_ordena2w #pula para o segundo for
 
-for_ordena2:
-	
-
+for_ordena2w:
 	lw a4, (t5) #carrega o valor e o endereço nos reg a4 e a5
 	lw a5, 4(t5)
-	beq a5, zero, terminou_segundo_for #caso o end do próximo é zero, ele termina o laço
-	blt a4, s6, swap_menor_valor #verifica se o valor é menor do que o que já foi setado como menor, caso for ele altera este valor
+	beq a5, zero, terminou_segundo_forw #caso o end do próximo é zero, ele termina o laço
+	blt a4, s6, swap_menor_valorw #verifica se o valor é menor do que o que já foi setado como menor, caso for ele altera este valor
 	lw t5, 4(t5)
-	j for_ordena2 #volta a fazer o segundo for
+	j for_ordena2w #volta a fazer o segundo for
 	
-add_inicio_vetor: #função para inserir o primeiro valor da lista e o seu endereço, tambem ja seta o mesmo como o menor valor, depois é feito a busca para ver se possui outro menor
+add_inicio_vetorw: #função para inserir o primeiro valor da lista e o seu endereço, tambem ja seta o mesmo como o menor valor, depois é feito a busca para ver se possui outro menor
 #para fazer o swap
 	add a2, zero, t4 #recebe o endereco inicial em a2
 	add a3, t4, t2 #recebe o endereco de onde está o nó
@@ -178,49 +226,49 @@ add_inicio_vetor: #função para inserir o primeiro valor da lista e o seu endereç
 	add s7, zero, a3
 	ret
 	
-swap_menor_valor:
+swap_menor_valorw:
 	add s6, zero, a4
 	add s7, zero, t5
 	addi s8, zero, 1 #passa para true que houve um valor menor que o inicial e teve swap
-	j for_ordena2
+	j for_ordena2w
 
-swap_menor_valor_ultimo:
+swap_menor_valor_ultimow:
 	add s6, zero, a4
 	add s7, zero, t5
 	addi s8, zero, 1 #passa para true que houve um valor menor que o inicial e teve swap
-	beq s10, s8, swap_vetor_ultimo #se o s8 igual a true, ou seja, teve valor menor, faz a troca
+	beq s10, s8, swap_vetor_ultimow #se o s8 igual a true, ou seja, teve valor menor, faz a troca
 	lw t4, 4(t4)
-	j for_ordena
+	j for_ordena1w
 
-swap_vetor_ultimo:
+swap_vetor_ultimow:
 	add s4, zero, a3 #s4 recebe como auxiliar para swap
 	sw s6, (a2)
 	sw s4, (s7)
 	add s8, zero, zero #passa o swap como false
-	j for_ordena
+	j for_ordena1w
 
-terminou_segundo_for:
-	blt a4, s6, swap_menor_valor_ultimo #verifica se o ultimo valor ainda pode ocorrer de ser trocado, por ser o menor valor da lista
-	beq s10, s8, swap_vetor #se o s8 igual a true, ou seja, teve valor menor, faz a troca
+terminou_segundo_forw:
+	blt a4, s6, swap_menor_valor_ultimow #verifica se o ultimo valor ainda pode ocorrer de ser trocado, por ser o menor valor da lista
+	beq s10, s8, swap_vetorw #se o s8 igual a true, ou seja, teve valor menor, faz a troca
 	lw t4, 4(t4)
-	j for_ordena #chama o primeiro for para começar a percorrer a partir do segundo valor
+	j for_ordena1w #chama o primeiro for para começar a percorrer a partir do segundo valor
 	
-swap_vetor: #faz a troca na lista em si, colocando o valor menor na posição respectiva 
+swap_vetorw: #faz a troca na lista em si, colocando o valor menor na posição respectiva 
 	add s4, zero, a3 #s4 recebe como auxiliar para swap
 	sw s6, (a2)
 	sw s4, (s7)
 	add s8, zero, zero #passa o swap como false
-	j prox_for_1
+	j prox_for_1w
 
-prox_for_1:
+prox_for_1w:
 	lw t4, 4(t4)
-	j for_ordena
+	j for_ordena1w
 	
-fim_ordenacao: #Quando chega no fim da ordenação, chama função que limpa os registradores usados, e lista o menu novamente
-	jal limpa_regs
+fim_ordenacaow: #Quando chega no fim da ordenação, chama função que limpa os registradores usados, e lista o menu novamente
+	jal limpa_regsw
 	j lista_opcoes
 	
-limpa_regs: #função que limpa todos registradores usados
+limpa_regsw: #função que limpa todos registradores usados
 	add a2, zero, zero
 	add a3, zero, zero
 	add a4, zero, zero
