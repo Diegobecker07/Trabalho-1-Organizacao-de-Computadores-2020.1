@@ -163,6 +163,8 @@ for_1: #primeiro for do selection sort
 for_2:
 	lw s7, (s6)
 	lw s8, 4(s6)
+	lw t5, (a2)
+	blt s7, t5, swap_menor_valor
 	beq s8, zero, terminou_segundo_for #caso o end do próximo é zero, ele termina o laço
 	
 	
@@ -182,6 +184,9 @@ fim_ordenacao: #Quando chega no fim da ordenação, chama função que limpa os regi
 	jal limpa_regs
 	j lista_opcoes
 	
+swap_menor_valor:
+	
+
 limpa_regs: #função que limpa todos registradores usados
 	add a2, zero, zero
 	add a3, zero, zero
